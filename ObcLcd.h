@@ -29,7 +29,7 @@
 #include "IO.h"
 
 #define LCD_MAX_CHARACTERS (20)
-#define CLOCK_MAX_CHARACTERS (4)
+#define CLOCK_MAX_CHARACTERS (5)
 
 class ObcLcd
 {
