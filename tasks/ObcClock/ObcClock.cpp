@@ -61,7 +61,7 @@ void ObcClock::runTask()
 {
 	if(state == Clock || state == ClockSet)
 	{
-		setDisplayClock("%02i%02i", obc.rtc->getHour(), obc.rtc->getMinute());
+		setDisplayClock("%02i:%02i", obc.rtc->getHour(), obc.rtc->getMinute());
 	}
 	else if(state == Date || state == DateSet)
 	{
