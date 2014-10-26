@@ -100,7 +100,7 @@ void ObcLcd::update()
 		spi.readWrite((uint8_t)clockBuffer[i]);
 	}
 	while(i++ < CLOCK_MAX_CHARACTERS)
-		spi.readWrite('');
+		spi.readWrite(' ');
 
 	//I forget what or why this is
 	spi.readWrite(0x00);
