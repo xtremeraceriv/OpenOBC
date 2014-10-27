@@ -239,16 +239,18 @@ OpenOBC::OpenOBC() : displayMode(reinterpret_cast<volatile DisplayMode_Type&>(LP
 	IO* lcdUnk0 = new IO(LCD_UNK0_PORT, LCD_UNK0_PIN, true);
 	IO* lcdUnk1 = new IO(LCD_UNK1_PORT, LCD_UNK1_PIN, false);
 	lcd = new ObcLcd(*spi1, *lcdSel, *lcdRefresh, *lcdUnk0, *lcdUnk1);
-	*lcdReset = true;
 	*lcdBiasEn = true;
-	
+	delay(4);
+	*lcdReset = true;
+	delay(15);
+
 	//backlight configuration
-	lcdLight = new IO(LCD_BACKLIGHT_PORT, LCD_BACKLIGHT_PIN, true);
-	clockLight = new IO(CLOCK_BACKLIGHT_PORT, CLOCK_BACKLIGHT_PIN, true);
-	auxLight = new IO(AUX_BACKLIGHT_PORT, AUX_BACKLIGHT_PIN, true);
-	keypadLight = new IO(KEYPAD_BACKLIGHT_PORT, KEYPAD_BACKLIGHT_PIN, true);
-// 	lcdBacklight = new PWM(LCD_BACKLIGHT_PORT, LCD_BACKLIGHT_PIN, .2);
-// 	clockBacklight = new PWM(CLOCK_BACKLIGHT_PORT, CLOCK_BACKLIGHT_PIN);
+// 	lcdLight = new IO(LCD_BACKLIGHT_PORT, LCD_BACKLIGHT_PIN, true);
+// 	clockLight = new IO(CLOCK_BACKLIGHT_PORT, CLOCK_BACKLIGHT_PIN, true);
+	auxLight = new PWM(AUX_BACKLIGHT_PORT, AUX_BACKLIGHT_PIN, 0.5);
+	keypadLight = new PWM(KEYPAD_BACKLIGHT_PORT, KEYPAD_BACKLIGHT_PIN, 0.0);
+	lcdLight = new PWM(LCD_BACKLIGHT_PORT, LCD_BACKLIGHT_PIN, 0.5);
+	clockLight = new PWM(CLOCK_BACKLIGHT_PORT, CLOCK_BACKLIGHT_PIN, 0.5);
 
 	printf("openOBC firmware version: %s\r\n", GIT_VERSION);
 
@@ -479,6 +481,9 @@ OpenOBC::OpenOBC() : displayMode(reinterpret_cast<volatile DisplayMode_Type&>(LP
 	//analog output configuration
 	analogOut = new AnalogOut(ANALOG_OUT_PORT, ANALOG_OUT_PIN, REFERENCE_VOLTAGE);
 	analogOut->writeVoltage(1.0);
+
+	//optional sensors
+	oilPressure = new OilPressureSensor(*analogIn1);
 
 // 	averageFuelConsumptionSeconds = 0;
 // 	averageLitresPer100km = 0;
@@ -780,8 +785,10 @@ void OpenOBC::mainloop()
 		{
 			if(coolantTemperatureTimer.read_ms() >= 1000)
 			{
+				float temp = kombi->getCoolantTemperature();
+				if(temp == kombi->getCoolantTemperature())
+					coolantTemperature = temp;
 				coolantTemperatureTimer.start();
-				coolantTemperature = kombi->getCoolantTemperature();
 			}
 		}
 		else
@@ -1075,6 +1082,11 @@ extern "C" void hard_fault_handler_c(unsigned int * hardfault_args)
 
 extern "C" void SysTick_Handler()
 {
+	static uint16_t illuminationOntime;
+	static uint16_t illuminationOfftime;
+	static uint16_t ambientLightOntime;
+	static uint16_t ambientLightOfftime;
+
 	SysTickCnt++;
 
 	if(doSleepCheck)
@@ -1083,5 +1095,62 @@ extern "C" void SysTick_Handler()
 			doSleep = false;
 		else
 			doSleep = true;
+
+
+		if(obcS->illumination->getState())
+		{
+			if(illuminationOfftime != 0)
+			{
+				obcS->illuminationDutycycle = (float)illuminationOntime / (illuminationOntime + illuminationOfftime);
+				illuminationOntime = 0;
+				illuminationOfftime = 0;
+				obcS->keypadLight->setDutyCycle(obcS->illuminationDutycycle);
+			}
+			illuminationOntime++;
+		}
+		else
+		{
+			illuminationOfftime++;
+		}
+		if(illuminationOntime >= 30)
+		{
+			obcS->illuminationDutycycle = 1.0;
+			illuminationOntime = 0;
+		}
+		else if(illuminationOfftime >= 30)
+		{
+			obcS->illuminationDutycycle = 0.0;
+			illuminationOfftime = 0;
+			obcS->keypadLight->setDutyCycle(0.0);
+		}
+
+		if(obcS->ambientLight->getState())
+		{
+			if(ambientLightOfftime != 0)
+			{
+				obcS->ambientLightDutycycle = (float)ambientLightOntime / (ambientLightOntime + ambientLightOfftime);
+				ambientLightOntime = 0;
+				ambientLightOfftime = 0;
+				obcS->lcdLight->setDutyCycle(1 - obcS->ambientLightDutycycle);
+				obcS->clockLight->setDutyCycle(obcS->lcdLight->getDutyCycle());
+				obcS->auxLight->setDutyCycle(obcS->lcdLight->getDutyCycle());
+			}
+			ambientLightOntime++;
+		}
+		else
+		{
+			ambientLightOfftime++;
+		}
+		if(ambientLightOntime >= 30)
+		{
+			obcS->ambientLightDutycycle = 1.0;
+			ambientLightOntime = 0;
+		}
+		else if(ambientLightOfftime >= 30)
+		{
+			obcS->ambientLightDutycycle = 0.0;
+			ambientLightOfftime = 0;
+		}
+
 	}
 }

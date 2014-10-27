@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012 <benemorius@gmail.com>
+    Copyright (c) 2014 <benemorius@gmail.com>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -23,36 +23,30 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef PWM_H
-#define PWM_H
+#include "OilPressureSensor.h"
 
-#include <lpc_types.h>
-#include <lpc17xx_pwm.h>
-
-
-class PWM
+OilPressureSensor::OilPressureSensor(AnalogIn& analogIn, float calibrationScale) : analogIn(analogIn), calibrationScale(calibrationScale)
 {
-public:
-	PWM(uint8_t port, uint8_t pin, float dutyCycle = .5, float frequency = 80000);
-	void setDutyCycle(float dutyCycle);
-	float getDutyCycle();
-	void setFrequency(float frequency); //on the LPC17xx this will set the frequency of all 6 PWM channels
-	float getFrequency();
 
-	void on();
-	void off();
+}
 
-	PWM& operator=(bool state);
-	PWM& operator=(float dutyCycle);
+float OilPressureSensor::getPsi()
+{
+	return getPsiFromVoltage(analogIn.read()) * calibrationScale;
+}
 
-private:
-	uint8_t port;
-	uint8_t pin;
-	uint8_t channel;
-	LPC_PWM_TypeDef* peripheral;
-	float dutyCycle;
-	float frequency;
-	static bool isInitialized;
-};
+float OilPressureSensor::getBar()
+{
+	return getPsi() / 14.504;
+}
 
-#endif // PWM_H
+float OilPressureSensor::getPsiFromVoltage(float voltage)
+{
+	if(voltage < 0.04)
+		return -1;
+	if(voltage > 0.5)
+		return 999;
+
+	float currentPsi = (float)pressureLookupTable[(unsigned int)(voltage * 100)] / 10;
+	return currentPsi;
+}

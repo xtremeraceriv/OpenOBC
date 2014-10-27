@@ -62,14 +62,23 @@ void ObcClock::runTask()
 	if(state == Clock || state == ClockSet)
 	{
 		setDisplayClock("%02i%02i", obc.rtc->getHour(), obc.rtc->getMinute());
+		obc.lcd->setSymbol(ObcLcdSymbols::TopDot, true);
+		obc.lcd->setSymbol(ObcLcdSymbols::BottomDot, true);
+		obc.lcd->setSymbol(ObcLcdSymbols::Periods, false);
 	}
 	else if(state == Date || state == DateSet)
 	{
-		setDisplayClock("%02i%02i", obc.rtc->getDay(), obc.rtc->getMonth());
+		setDisplayClock("%02i%02i", obc.rtc->getMonth(), obc.rtc->getDay());
+		obc.lcd->setSymbol(ObcLcdSymbols::TopDot, false);
+		obc.lcd->setSymbol(ObcLcdSymbols::BottomDot, false);
+		obc.lcd->setSymbol(ObcLcdSymbols::Periods, true);
 	}
 	else if(state == YearSet)
 	{
 		setDisplayClock("%04u", obc.rtc->getYear());
+		obc.lcd->setSymbol(ObcLcdSymbols::TopDot, false);
+		obc.lcd->setSymbol(ObcLcdSymbols::BottomDot, false);
+		obc.lcd->setSymbol(ObcLcdSymbols::Periods, false);
 	}
 	
 	if(state == ClockSet)

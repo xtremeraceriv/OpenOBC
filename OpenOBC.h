@@ -53,6 +53,7 @@
 #include <MMA845x.h>
 #include <AnalogOut.h>
 #include "FuelConsumption.h"
+#include <OilPressureSensor.h>
 
 class ObcUI;
 
@@ -104,10 +105,10 @@ public:
 	Callback* callback;
 	SPI* spi0;
 	SPI* spi1;
-	IO* lcdLight;
-	IO* clockLight;
-	IO* auxLight;
-	IO* keypadLight;
+	PWM* lcdLight;
+	PWM* clockLight;
+	PWM* auxLight;
+	PWM* keypadLight;
 	IO* codeLed;
 	IO* limitLed;
 	IO* timerLed;
@@ -169,7 +170,10 @@ public:
 	float coolantTemperature; //coolant temperature in degrees celsius from KOMBI via diagnostic bus
 	float averageKmh;
 	float currentKm;
-	
+	OilPressureSensor* oilPressure;
+	float illuminationDutycycle;
+	float ambientLightDutycycle;
+
 protected:
 	void sleep();
 	void wake();

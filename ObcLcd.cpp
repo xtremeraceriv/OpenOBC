@@ -30,6 +30,8 @@
 #include "delay.h"
 #include <string.h>
 
+const uint8_t ObcLcd::constBytes[8] = {0x1f, 0x00, 0x11, 0x19, 0x15, 0x13, 0x11, 0x00};
+
 ObcLcd::ObcLcd(SPI& spi, IO& cs, IO& refresh, IO& unk0, IO& unk1, uint32_t spiClockrateHz) : spi(spi), cs(cs), refresh(refresh), unk0(unk0), unk1(unk1), spiClockrate(spiClockrateHz)
 {
 	this->cs = true;
@@ -38,6 +40,7 @@ ObcLcd::ObcLcd(SPI& spi, IO& cs, IO& refresh, IO& unk0, IO& unk1, uint32_t spiCl
 	this->unk1 = false;
 	*lcdBuffer = '\0';
 	*clockBuffer = '\0';
+	memset(symbolBytes, 0, sizeof(symbolBytes));
 }
 
 void ObcLcd::printf(char* format, ...)
@@ -71,6 +74,10 @@ void ObcLcd::clearClock()
 void ObcLcd::update()
 {
 	spi.setClockRate(spiClockrate);
+
+	sendSymbols();
+	delay(1);
+
 	cs = false;
 
 	//center the lcd text within LCD_MAX_CHARACTERS characters
@@ -102,8 +109,7 @@ void ObcLcd::update()
 	while(i++ < CLOCK_MAX_CHARACTERS)
 		spi.readWrite(' ');
 
-	//I forget what or why this is
-	spi.readWrite(0x00);
+	spi.readWrite(0x08); //must be 0x08 to enable extra lcd symbols; 0x00 will disable them
 	spi.readWrite(' ');
 	spi.readWrite(' ');
 	spi.readWrite(' ');
@@ -114,4 +120,63 @@ void ObcLcd::update()
 	cs = true;
 }
 
+void ObcLcd::testSymbols()
+{
+	//                          am          dots        pm          bottom/+    right       top         memo        left
+	const char   all[] = {0x07, 0x04, 0x06, 0x0c, 0x05, 0x04, 0x04, 0x0c, 0x03, 0x04, 0x02, 0x08, 0x01, 0x04, 0x00, 0x04, 0x0f, 0x00, 0x0e, 0x11, 0x0d, 0x13, 0x0c, 0x15, 0x0b, 0x19, 0x0a, 0x11, 0x09, 0x00, 0x08, 0x1f};
+	const char  none[] = {0x07, 0x00, 0x06, 0x00, 0x05, 0x00, 0x04, 0x00, 0x03, 0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00, 0x0f, 0x00, 0x0e, 0x11, 0x0d, 0x13, 0x0c, 0x15, 0x0b, 0x19, 0x0a, 0x11, 0x09, 0x00, 0x08, 0x1f};
+	const char  some[] = {0x07, 0x00, 0x06, 0x00, 0x05, 0x00, 0x04, 0x08, 0x03, 0x00, 0x02, 0x08, 0x01, 0x04, 0x00, 0x00, 0x0f, 0x00, 0x0e, 0x11, 0x0d, 0x13, 0x0c, 0x15, 0x0b, 0x19, 0x0a, 0x11, 0x09, 0x00, 0x08, 0x1f};
 
+	const char colon[] = {0x07, 0x00, 0x06, 0x00, 0x05, 0x00, 0x04, 0x08, 0x03, 0x00, 0x02, 0x08, 0x01, 0x00, 0x00, 0x00, 0x0f, 0x00, 0x0e, 0x11, 0x0d, 0x13, 0x0c, 0x15, 0x0b, 0x19, 0x0a, 0x11, 0x09, 0x00, 0x08, 0x1f};
+	const char  dots[] = {0x07, 0x00, 0x06, 0x0c, 0x05, 0x00, 0x04, 0x00, 0x03, 0x00, 0x02, 0x00, 0x01, 0x00, 0x00, 0x00, 0x0f, 0x00, 0x0e, 0x11, 0x0d, 0x13, 0x0c, 0x15, 0x0b, 0x19, 0x0a, 0x11, 0x09, 0x00, 0x08, 0x1f};
+	int numStuff = 32;
+
+	const char* stuff;
+// 	if(colonEnabled)
+// 		stuff = colon;
+// 	else if(dotsEnabled)
+// 		stuff = dots;
+// 	else
+		stuff = none;
+
+	cs.off();
+	for(int i = 0; i < numStuff; i += 2)
+	{
+		spi.readWrite(stuff[i]);
+		spi.readWrite(stuff[i+1]);
+		unk1.on();
+		unk1.off();
+	}
+	cs.on();
+}
+
+void ObcLcd::sendSymbols()
+{
+	cs.off();
+	for(int8_t byte = 7; byte >= 0; --byte)
+	{
+		spi.readWrite(byte);
+		spi.readWrite(symbolBytes[byte]);
+		unk1.on();
+		unk1.off();
+	}
+	for(int8_t byte = 15; byte >= 8; --byte)
+	{
+		spi.readWrite(byte);
+		spi.readWrite(constBytes[byte - 8]);
+		unk1.on();
+		unk1.off();
+	}
+	cs.on();
+}
+
+void ObcLcd::setSymbol(ObcLcdSymbols::symbol symbol, bool isOn)
+{
+	uint8_t symbolByte = ObcLcdSymbolOffsets::symbol[symbol];
+	uint8_t symbolMask = ObcLcdSymbolMasks::symbol[symbol];
+
+	if(isOn)
+		symbolBytes[symbolByte] = symbolBytes[symbolByte] | symbolMask;
+	else
+		symbolBytes[symbolByte] = symbolBytes[symbolByte] &  ~symbolMask;
+}
