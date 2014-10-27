@@ -68,7 +68,7 @@ void ObcClock::runTask()
 	}
 	else if(state == Date || state == DateSet)
 	{
-		setDisplayClock("%02i%02i", obc.rtc->getMonth(), obc.rtc->getDay());
+		setDisplayClock("%02i%02i",  obc.rtc->getDay(), obc.rtc->getMonth());
 		obc.lcd->setSymbol(ObcLcdSymbols::TopDot, false);
 		obc.lcd->setSymbol(ObcLcdSymbols::BottomDot, false);
 		obc.lcd->setSymbol(ObcLcdSymbols::Periods, true);
@@ -139,7 +139,7 @@ void ObcClock::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 			{
 				state = YearSet;
 			}
-			else if(buttonMask == BUTTON_1000_MASK)
+			else if(buttonMask == BUTTON_10_MASK)
 			{
 				int month = obc.rtc->getMonth() + 10;
 				if(month >= 13)
@@ -149,11 +149,11 @@ void ObcClock::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 						month = 10;
 					obc.rtc->setMonth(month);
 			}
-			else if(buttonMask == BUTTON_100_MASK)
+			else if(buttonMask == BUTTON_1_MASK)
 			{
 				obc.rtc->setMonth(obc.rtc->getMonth() + 1);
 			}
-			else if(buttonMask == BUTTON_10_MASK)
+			else if(buttonMask == BUTTON_1000_MASK)
 			{
 				int day = obc.rtc->getDay() + 10;
 				if(day >= 32)
@@ -163,7 +163,7 @@ void ObcClock::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 						day = 10;
 					obc.rtc->setDay(day);
 			}
-			else if(buttonMask == BUTTON_1_MASK)
+			else if(buttonMask == BUTTON_100_MASK)
 			{
 				obc.rtc->setDay(obc.rtc->getDay() + 1);
 			}
