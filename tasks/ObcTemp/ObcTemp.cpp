@@ -72,7 +72,7 @@ void ObcTemp::runTask()
 		if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Both)
 			setDisplay("ext. % 2.1fC % 3.0fF", temperature, temperature * 1.78 + 32);
 		if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Metric)
-			setDisplay("exterior % 2.1fC", temperature);
+			setDisplay("Exterior % 2.1fC", temperature);								//Modifico a Español
 		if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Imperial)
 			setDisplay("exterior % 3.0fF", temperature * 1.78 + 32);
 	}
@@ -81,7 +81,7 @@ void ObcTemp::runTask()
 		if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Both)
 			setDisplay("coolant % 2.0fC %.0fF", obc.coolantTemperature, obc.coolantTemperature * 1.78 + 32);
 		if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Metric)
-			setDisplay("coolant temp % 2.0fC", obc.coolantTemperature);
+			setDisplay("Agua % 2.0fC", obc.coolantTemperature);							//Modifico a Español
 		if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Imperial)
 			setDisplay("coolant temp % 3.0fF", obc.coolantTemperature * 1.78 + 32);
 	}

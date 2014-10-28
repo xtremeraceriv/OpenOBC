@@ -133,7 +133,7 @@ void ObcClock::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 				
 			}
 		}
-		else if(state == DateSet && obc.ui->getActiveTask() == this)
+		else if(state == DateSet && obc.ui->getActiveTask() == this) //Modifico aca, para que se adecue a la inversion de fecha Argentina
 		{
 			if(buttonMask == BUTTON_SET_MASK)
 			{

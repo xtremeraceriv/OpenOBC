@@ -48,7 +48,7 @@ private:
 
 //for VDO 360-007, 80 psi 10-180 ohm sensor
 //starts at 0mV; increments by 10mV
-const uint16_t pressureLookupTable[] = {
+/*const uint16_t pressureLookupTable[] = {
 	0, //0 psi == 0mV
 	0, //0 psi == 10mV
 	0,
@@ -100,6 +100,62 @@ const uint16_t pressureLookupTable[] = {
 	755,
 	776,
 	797
+};*/
+
+//for MD 23886, 150 psi 0-180 ohm sensor
+//starts at 0mV; increments by 10mV
+const uint16_t pressureLookupTable[] = {
+	0, //0 psi == 0mV
+	30, //0 psi == 10mV
+	60,
+	90,
+	120, //1.1 psi == 40mV
+	150, //2.5 psi == 50mV
+	180,
+	210,
+	240,
+	270,
+	300,
+	330,
+	360,
+	390,
+	420,
+	450,
+	480,
+	510,
+	540,
+	570,
+	600,
+	630,
+	660,
+	690,
+	700,
+	730,
+	760,
+	790,
+	820,
+	850,
+	880,
+	910,
+	940,
+	970,
+	1000,
+	1030,
+	1060,
+	1090,
+	1120,
+	1150,
+	1180,
+	1210,
+	1240,
+	1270,
+	1300,
+	1330,
+	1360,
+	1390,
+	1420,
+	1450,
+	1480
 };
 
 #endif // OILPRESSURESENSOR_H
