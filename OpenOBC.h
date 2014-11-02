@@ -171,6 +171,7 @@ public:
 	float averageKmh;
 	float currentKm;
 	OilPressureSensor* oilPressure;
+	OilTempSensor* oilTemp;
 	float illuminationDutycycle;
 	float ambientLightDutycycle;
 

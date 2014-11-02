@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2013 <benemorius@gmail.com>
+    Copyright (c) 2014 <benemorius@gmail.com>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -23,36 +23,30 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#ifndef OBCTEMP_H
-#define OBCTEMP_H
+#include "OilPressureSensor.h"
 
-#include <ObcUITask.h>
-
-namespace ObcTempState {
-	enum state {TempExt, TempCoolant, Temp&PressOil, TempCoolantWarningSet, TempOilWarningSet, PressOilWarningSet}; //Agrego estados del OBC
-}
-
-class ObcTemp : public ObcUITask
+OilPressureSensor::OilPressureSensor(AnalogIn& analogIn, float calibrationScale) : analogIn(analogIn), calibrationScale(calibrationScale)
 {
 
-public:
-	ObcTemp(OpenOBC& obc);
-	~ObcTemp();
-	
-	virtual void runTask();
-	virtual void buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask);
-	
-	virtual void wake();
-	virtual void sleep();
-	
-private:
-	ObcTempState::state state;
-	uint32_t coolantWarningTemp;
-	uint32_t coolantWarningTempSet;
-	uint32_t OilWarningTemp;			//Agrego warnings de temperatura y presion de aceite
-	uint32_t OilWarningTempSet;
-	uint32_t OilWarningPress;
-	uint32_t OilWarningPressSet;
-};
+}
 
-#endif // OBCTEMP_H
+float OilPressureSensor::getPsi()
+{
+	return getPsiFromVoltage(analogIn.read()) * calibrationScale;
+}
+
+float OilPressureSensor::getBar()
+{
+	return getPsi() / 14.504;
+}
+
+float OilPressureSensor::getPsiFromVoltage(float voltage)
+{
+	if(voltage < 0.04)
+		return -1;
+	if(voltage > 0.5)
+		return 999;
+
+	float currentPsi = (float)pressureLookupTable[(unsigned int)(voltage * 100)] / 10;
+	return currentPsi;
+}

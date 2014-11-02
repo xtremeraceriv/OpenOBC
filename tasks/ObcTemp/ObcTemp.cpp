@@ -39,8 +39,12 @@ ObcTemp::ObcTemp(OpenOBC& obc) : ObcUITask(obc)
 		state = TempCoolant;
 	else if(configState == "TempExt")
 		state = TempExt;
+	else if(configState == "Temp&PressOil") //Agrego estado de temperatura y presion de aceite
+		state = Temp&PressOil;
 	
 	coolantWarningTemp = strtoul(obc.config->getValueByNameWithDefault("ObcTempCoolantWarningTemp", "100").c_str(), NULL, 0);
+	OilWarningTemp = strtoul(obc.config->getValueByNameWithDefault("ObcTempOilWarningTemp", "140").c_str(), NULL, 0);		//Agrego warning de temp oil
+	OilWarningPress = strtoul(obc.config->getValueByNameWithDefault("ObcPressOilWarningPress", "10").c_str(), NULL, 0);		//Agrego warning de press oil
 }
 
 ObcTemp::~ObcTemp()
@@ -56,10 +60,14 @@ void ObcTemp::wake()
 void ObcTemp::sleep()
 {
 	obc.config->setValueByName("ObcTempCoolantWarningTemp", "%i", coolantWarningTemp);
+	obc.config->setValueByName("ObcTempOilWarningTemp", "%i", OilWarningTemp);			//Nuevo Warning
+	obc.config->setValueByName("ObcPressOilWarningPress", "%i", OilWarningPress);		//Nuevo Warning
 	if(state == TempCoolant)
 		obc.config->setValueByName("ObcTempState", "TempCoolant");
-	else
+	else if(state == TempExt)
 		obc.config->setValueByName("ObcTempState", "TempExt");
+	else if(state == Temp&PressOil)										//Nuevo estado
+		obc.config->setValueByName("ObcTempState", "Temp&PressOil");
 }
 
 void ObcTemp::runTask()
