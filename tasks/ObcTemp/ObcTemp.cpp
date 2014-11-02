@@ -39,8 +39,8 @@ ObcTemp::ObcTemp(OpenOBC& obc) : ObcUITask(obc)
 		state = TempCoolant;
 	else if(configState == "TempExt")
 		state = TempExt;
-	else if(configState == "Temp&PressOil") //Agrego estado de temperatura y presion de aceite
-		state = Temp&PressOil;
+	else if(configState == "TempPressOil") //Agrego estado de temperatura y presion de aceite
+		state = TempPressOil;
 	
 	coolantWarningTemp = strtoul(obc.config->getValueByNameWithDefault("ObcTempCoolantWarningTemp", "100").c_str(), NULL, 0);
 	OilWarningTemp = strtoul(obc.config->getValueByNameWithDefault("ObcTempOilWarningTemp", "140").c_str(), NULL, 0);		//Agrego warning de temp oil
@@ -67,7 +67,7 @@ void ObcTemp::sleep()
 	else if(state == TempExt)
 		obc.config->setValueByName("ObcTempState", "TempExt");
 	else if(state == Temp&PressOil)										//Nuevo estado
-		obc.config->setValueByName("ObcTempState", "Temp&PressOil");
+		obc.config->setValueByName("ObcTempState", "TempPressOil");
 }
 
 void ObcTemp::runTask()
@@ -93,7 +93,7 @@ void ObcTemp::runTask()
 		if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Imperial)
 			setDisplay("coolant temp % 3.0fF", obc.coolantTemperature * 1.78 + 32);
 	}
-	else if(state == Temp&PressOil)
+	else if(state == TempPressOil)
 	{
 		setDisplay("Aceite % 2.0f psi % 2.0fC", obc.analogIn2->read(), obc.oilTemp->getTemp());	//Agrego estado nuevo
 	}
@@ -148,7 +148,7 @@ void ObcTemp::runTask()
 		OTWarningTimer.start();
 		OThasWarned = true;
 		obc.ui->setActiveTask(this, 5);
-		state = Temp&PressOil;
+		state = TempPressOil;
 		obc.ccmLight->on();
 		obc.ui->callback.addCallback(obc.ccmLight, &IO::off, 4000);
 		obc.chime1->on();
@@ -178,7 +178,7 @@ void ObcTemp::runTask()
 		OPWarningTimer.start();
 		OPhasWarned = true;
 		obc.ui->setActiveTask(this, 5);
-		state = Temp&PressOil;
+		state = TempPressOil;
 		obc.ccmLight->on();
 		obc.ui->callback.addCallback(obc.ccmLight, &IO::off, 4000);
 		obc.chime1->on();

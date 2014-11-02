@@ -28,8 +28,9 @@
 
 #include <ObcUITask.h>
 
-namespace ObcTempState {
-	enum state {TempExt, TempCoolant, Temp&PressOil, TempCoolantWarningSet, TempOilWarningSet, PressOilWarningSet}; //Agrego estados del OBC
+namespace ObcTempState 
+{
+	enum state {TempExt, TempCoolant, TempPressOil, TempCoolantWarningSet, TempOilWarningSet, PressOilWarningSet}; //Agrego estados del OBC
 }
 
 class ObcTemp : public ObcUITask
