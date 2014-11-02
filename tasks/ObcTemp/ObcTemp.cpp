@@ -93,11 +93,24 @@ void ObcTemp::runTask()
 		if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Imperial)
 			setDisplay("coolant temp % 3.0fF", obc.coolantTemperature * 1.78 + 32);
 	}
+	else if(state == Temp&PressOil)
+	{
+		setDisplay("Aceite % 2.0f psi % 2.0fC", obc.oilPressure->getPsi(), obc.oilTemp->getTemp());	//Agrego estado nuevo
+	}
 	else if(state == TempCoolantWarningSet)
 	{
 		setDisplay("set warning % 3iC", coolantWarningTempSet);
 	}
-	
+	else if(state == TempOilWarningSet)								//Nuevo warning
+	{
+		setDisplay("set warning % 3iC", OilWarningTempSet);
+	}
+	else if(state == PressOilWarningSet)							//Nuevo warning
+	{
+		setDisplay("set warning % 3i psi", OilWarningPressSet);
+	}
+
+	//Warning Temperatura de Agua
 	static Timer coolantWarningTimer;
 	static bool hasWarned;
 	if(obc.coolantTemperature >= coolantWarningTemp && !hasWarned)
@@ -125,6 +138,66 @@ void ObcTemp::runTask()
 	else
 	{
 		hasWarned = false;
+	}
+
+	//Warning Temperatura de Aceite
+	static Timer OTWarningTimer;
+	static bool OThasWarned;
+	if((obc.oilTemp->getTemp()) >= OilWarningTemp && !OThasWarned)
+	{
+		OTWarningTimer.start();
+		OThasWarned = true;
+		obc.ui->setActiveTask(this, 5);
+		state = Temp&PressOil;
+		obc.ccmLight->on();
+		obc.ui->callback.addCallback(obc.ccmLight, &IO::off, 4000);
+		obc.chime1->on();
+		obc.ui->callback.addCallback(obc.chime1, &IO::off, 100);
+	}
+	else if((obc.oilTemp->getTemp()) >= OilWarningTemp)
+	{
+		if(OTWarningTimer.read_ms() >= 5000)
+		{
+			OTWarningTimer.start();
+			obc.ccmLight->on();
+			obc.ui->callback.addCallback(obc.ccmLight, &IO::off, 4000);
+			obc.chime1->on();
+			obc.ui->callback.addCallback(obc.chime1, &IO::off, 100);
+		}
+	}
+	else
+	{
+		OThasWarned = false;
+	}
+
+	//Warning Presion de aceite
+	static Timer OPWarningTimer;
+	static bool OPhasWarned;
+	if((obc.oilPressure->getPsi()) >= OilWarningPress && !OPhasWarned)
+	{
+		OPWarningTimer.start();
+		OPhasWarned = true;
+		obc.ui->setActiveTask(this, 5);
+		state = Temp&PressOil;
+		obc.ccmLight->on();
+		obc.ui->callback.addCallback(obc.ccmLight, &IO::off, 4000);
+		obc.chime1->on();
+		obc.ui->callback.addCallback(obc.chime1, &IO::off, 100);
+	}
+	else if((obc.oilPressure->getPsi()) >= OilWarningPress)
+	{
+		if(OPWarningTimer.read_ms() >= 5000)
+		{
+			OPWarningTimer.start();
+			obc.ccmLight->on();
+			obc.ui->callback.addCallback(obc.ccmLight, &IO::off, 4000);
+			obc.chime1->on();
+			obc.ui->callback.addCallback(obc.chime1, &IO::off, 100);
+		}
+	}
+	else
+	{
+		OPhasWarned = false;
 	}
 }
 
