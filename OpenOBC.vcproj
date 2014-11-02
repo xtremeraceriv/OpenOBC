@@ -380,6 +380,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\lib\OilTempSensor\OilTempSensor.h"
+				>
+			</File>
+			<File
 				RelativePath=".\OpenOBC.h"
 				>
 			</File>
@@ -737,6 +741,10 @@
 			</File>
 			<File
 				RelativePath=".\lib\OilPressureSensor\OilPressureSensor.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\lib\OilTempSensor\OilTempSensor.cpp"
 				>
 			</File>
 			<File
