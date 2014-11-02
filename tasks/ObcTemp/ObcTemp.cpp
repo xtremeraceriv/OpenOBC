@@ -33,6 +33,8 @@ using namespace ObcTempState;
 ObcTemp::ObcTemp(OpenOBC& obc) : ObcUITask(obc)
 {
 	setDisplay("ObcTemp");
+
+	StatusSet = true; //Inicializo selector
 	
 	std::string configState = obc.config->getValueByNameWithDefault("ObcTempState", "TempExt");
 	if(configState == "TempCoolant")
