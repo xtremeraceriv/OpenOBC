@@ -215,6 +215,8 @@ void ObcTemp::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 		if(state == TempExt)
 			state = TempCoolant;
 		else if(state == TempCoolant)
+			state = Temp&PressOil;
+		else if(state == Temp&PressOil)
 			state = TempExt;
 	}
 	
@@ -225,13 +227,26 @@ void ObcTemp::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 			coolantWarningTempSet = coolantWarningTemp;
 			state = TempCoolantWarningSet;
 		}
+		else if((state == Temp&PressOil) && !StatusSet)
+		{
+			OilWarningTemp = OilWarningTempSet;
+			state = TempOilWarningSet;
+			StatusSet = false;
+		}
+		else if((state == Temp&PressOil) && StatusSet)
+		{
+			OilWarningPress = OilWarningPressSet;
+			state = PressOilWarningSet;
+			StatusSet = true;
+		}
 		else
 		{
-			coolantWarningTemp = coolantWarningTempSet;
-			state = TempCoolant;
+			coolantWarningTempSet = coolantWarningTemp;
+			state = TempExt;
 		}
 	}
 	
+	//Cargo valor de Coolant temp Warning
 	else if((state == TempCoolantWarningSet) && (buttonMask & (BUTTON_1000_MASK | BUTTON_100_MASK | BUTTON_10_MASK | BUTTON_1_MASK)))
 	{
 		if(buttonMask == BUTTON_1000_MASK)
@@ -251,5 +266,49 @@ void ObcTemp::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 			coolantWarningTempSet += 1;
 		}
 		coolantWarningTempSet %= 1000;
+	}
+
+	//Cargo valor de Oil temp Warning
+	else if((state == TempOilWarningSet) && (buttonMask & (BUTTON_1000_MASK | BUTTON_100_MASK | BUTTON_10_MASK | BUTTON_1_MASK)))
+	{
+		if(buttonMask == BUTTON_1000_MASK)
+		{
+			OilWarningTempSet += 1000;
+		}
+		if(buttonMask == BUTTON_100_MASK)
+		{
+			OilWarningTempSet += 100;
+		}
+		if(buttonMask == BUTTON_10_MASK)
+		{
+			OilWarningTempSet += 10;
+		}
+		if(buttonMask == BUTTON_1_MASK)
+		{
+			OilWarningTempSet += 1;
+		}
+		OilWarningTempSet %= 1000;
+	}
+
+	//Cargo valor de Oil press Warning
+	else if((state == PressOilWarningSet) && (buttonMask & (BUTTON_1000_MASK | BUTTON_100_MASK | BUTTON_10_MASK | BUTTON_1_MASK)))
+	{
+		if(buttonMask == BUTTON_1000_MASK)
+		{
+			OilWarningPressSet += 1000;
+		}
+		if(buttonMask == BUTTON_100_MASK)
+		{
+			OilWarningPressSet += 100;
+		}
+		if(buttonMask == BUTTON_10_MASK)
+		{
+			OilWarningPressSet += 10;
+		}
+		if(buttonMask == BUTTON_1_MASK)
+		{
+			OilWarningPressSet += 1;
+		}
+		OilWarningPressSet %= 1000;
 	}
 }

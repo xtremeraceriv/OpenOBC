@@ -53,6 +53,7 @@ private:
 	uint32_t OilWarningTempSet;
 	uint32_t OilWarningPress;
 	uint32_t OilWarningPressSet;
+	static bool StatusSet = true;
 };
 
 #endif // OBCTEMP_H
