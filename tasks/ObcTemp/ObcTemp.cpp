@@ -95,7 +95,7 @@ void ObcTemp::runTask()
 	}
 	else if(state == Temp&PressOil)
 	{
-		setDisplay("Aceite % 2.0f psi % 2.0fC", obc.oilPressure->getPsi(), obc.oilTemp->getTemp());	//Agrego estado nuevo
+		setDisplay("Aceite % 2.0f psi % 2.0fC", obc.analogIn2->read(), obc.oilTemp->getTemp());	//Agrego estado nuevo
 	}
 	else if(state == TempCoolantWarningSet)
 	{
@@ -143,7 +143,7 @@ void ObcTemp::runTask()
 	//Warning Temperatura de Aceite
 	static Timer OTWarningTimer;
 	static bool OThasWarned;
-	if((obc.oilTemp->getTemp()) >= OilWarningTemp && !OThasWarned)
+	if(obc.analogIn2->read() >= OilWarningTemp && !OThasWarned)
 	{
 		OTWarningTimer.start();
 		OThasWarned = true;
@@ -154,7 +154,7 @@ void ObcTemp::runTask()
 		obc.chime1->on();
 		obc.ui->callback.addCallback(obc.chime1, &IO::off, 100);
 	}
-	else if((obc.oilTemp->getTemp()) >= OilWarningTemp)
+	else if(obc.analogIn2->read()) >= OilWarningTemp)
 	{
 		if(OTWarningTimer.read_ms() >= 5000)
 		{
