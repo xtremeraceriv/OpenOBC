@@ -44,9 +44,9 @@ ObcTemp::ObcTemp(OpenOBC& obc) : ObcUITask(obc)
 		state = TempPressOil;
 	
 	coolantWarningTemp = strtoul(obc.config->getValueByNameWithDefault("ObcTempCoolantWarningTemp", "100").c_str(), NULL, 0);
-	OilWarningTemp = strtoul(obc.config->getValueByNameWithDefault("ObcTempOilWarningTemp", "140").c_str(), NULL, 0);		//Agrego warning de temp oil
-	OilWarningPress = strtoul(obc.config->getValueByNameWithDefault("ObcPressOilWarningPress", "10").c_str(), NULL, 0);		//Agrego warning de press oil
-}
+	OilWarningTemp = strtoul(obc.config->getValueByNameWithDefault("ObcTempOilWarningTemp", "140").c_str(), NULL, 0);		//Agrego warning de oil temp
+	OilWarningPress = strtoul(obc.config->getValueByNameWithDefault("ObcPressOilWarningPress", "10").c_str(), NULL, 0);		//Agrego warning de oil press
+ }
 
 ObcTemp::~ObcTemp()
 {
