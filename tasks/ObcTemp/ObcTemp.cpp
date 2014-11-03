@@ -29,7 +29,7 @@
 #include <cstdlib>
 
 using namespace ObcTempState;
-static bool StatusSet = true; //Inicializo selector
+static bool StatusSet = true;	//Inicializo selector
 
 ObcTemp::ObcTemp(OpenOBC& obc) : ObcUITask(obc)
 {
@@ -96,19 +96,29 @@ void ObcTemp::runTask()
 	}
 	else if(state == TempPressOil)
 	{
-		setDisplay("Oil % 2.0fpsi % 2.0fC",  obc.oilPressure->getPsi(), obc.analogIn2->read());	//Agrego estado nuevo
+		float Vref = 3.0;								// [V]       Tensión alimentación del divisor
+		float Rfija = 1000;								// [ohm]     Resistencia fija del divisor
+		float R25 = 3600;								// [ohm]     Valor de NTC a 25ºC
+		float Beta = 1770.0;							// [K]       Parámetro Beta de NTC
+		float T0 = 293.15;								// [K]       Temperatura de referencia en Kelvin
+		float Vdiv = obc.analogIn2->read();				// [V]       Variable para almacenar Vout
+		float Rntc =(Vdiv*Rfija)/(Vref-Vdiv);			//Ahora la resistencia de la NTC
+		float TempK = Beta/(log(Rntc/R25)+(Beta/T0));	//Y por último la temperatura en Kelvin
+		float TempC = TempK-273.15;						//Y ahora la pasamos a celsius
+
+		setDisplay("Oil % 2.0fpsi % 2.0fC",  obc.oilPressure->getPsi(), TempC);	//Agrego estado nuevo
 	}
 	else if(state == TempCoolantWarningSet)
 	{
-		setDisplay("set warning % 3iC", coolantWarningTempSet);
+		setDisplay("Coolant warning % 3iC", coolantWarningTempSet);
 	}
 	else if(state == TempOilWarningSet)								//Nuevo warning
 	{
-		setDisplay("set warning % 3iC", OilWarningTempSet);
+		setDisplay("Oil warning % 3iC", OilWarningTempSet);
 	}
 	else if(state == PressOilWarningSet)							//Nuevo warning
 	{
-		setDisplay("set warning % 3ipsi", OilWarningPressSet);
+		setDisplay("Oil warning % 3ipsi", OilWarningPressSet);
 	}
 
 	//Warning Temperatura de Agua
