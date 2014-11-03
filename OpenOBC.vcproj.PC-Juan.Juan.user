@@ -9,7 +9,7 @@
 			Name="Debug|Win32"
 			>
 			<DebugSettings
-				Command="$(TargetPath)"
+				Command="C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
 				WorkingDirectory=""
 				CommandArguments=""
 				Attach="false"
