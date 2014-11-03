@@ -35,8 +35,6 @@ ObcTemp::ObcTemp(OpenOBC& obc) : ObcUITask(obc)
 {
 	setDisplay("ObcTemp");
 
-	
-	
 	std::string configState = obc.config->getValueByNameWithDefault("ObcTempState", "TempExt");
 	if(configState == "TempCoolant")
 		state = TempCoolant;
@@ -98,7 +96,7 @@ void ObcTemp::runTask()
 	}
 	else if(state == TempPressOil)
 	{
-		setDisplay("Aceite % 2.0f psi % 2.0fC",  obc.oilPressure->getPsi(), obc.analogIn2->read());	//Agrego estado nuevo
+		setDisplay("Oil % 2.0fpsi % 2.0fC",  obc.oilPressure->getPsi(), obc.analogIn2->read());	//Agrego estado nuevo
 	}
 	else if(state == TempCoolantWarningSet)
 	{
@@ -110,7 +108,7 @@ void ObcTemp::runTask()
 	}
 	else if(state == PressOilWarningSet)							//Nuevo warning
 	{
-		setDisplay("set warning % 3i psi", OilWarningPressSet);
+		setDisplay("set warning % 3ipsi", OilWarningPressSet);
 	}
 
 	//Warning Temperatura de Agua
@@ -176,7 +174,7 @@ void ObcTemp::runTask()
 	//Warning Presion de aceite
 	static Timer OPWarningTimer;
 	static bool OPhasWarned;
-	if((obc.oilPressure->getPsi()) >= OilWarningPress && !OPhasWarned)
+	if((obc.oilPressure->getPsi()) <= OilWarningPress && !OPhasWarned)
 	{
 		OPWarningTimer.start();
 		OPhasWarned = true;
@@ -187,7 +185,7 @@ void ObcTemp::runTask()
 		obc.chime1->on();
 		obc.ui->callback.addCallback(obc.chime1, &IO::off, 100);
 	}
-	else if((obc.oilPressure->getPsi()) >= OilWarningPress)
+	else if((obc.oilPressure->getPsi()) <= OilWarningPress)
 	{
 		if(OPWarningTimer.read_ms() >= 5000)
 		{
@@ -234,13 +232,13 @@ void ObcTemp::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 		{
 			OilWarningTemp = OilWarningTempSet;
 			state = TempOilWarningSet;
-			StatusSet = false;
+			StatusSet = true;
 		}
 		else if((state == TempPressOil) && StatusSet)
 		{
 			OilWarningPress = OilWarningPressSet;
 			state = PressOilWarningSet;
-			StatusSet = true;
+			StatusSet = false;
 		}
 		else
 		{
