@@ -815,7 +815,7 @@ void OpenOBC::mainloop()
 				}
 				else if(clockDisplayMode == CLOCKDISPLAY_DATE)
 				{
-					lcd->printfClock("%02i%02i", rtc->getMonth(), rtc->getDay());
+					lcd->printfClock("%02i%02i",rtc->getDay(), rtc->getMonth());			//Modifico el orden del dia y año
 				}
 			}
 			
