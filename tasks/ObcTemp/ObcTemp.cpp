@@ -217,8 +217,8 @@ void ObcTemp::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 		if(state == TempExt)
 			state = TempCoolant;
 		else if(state == TempCoolant)
-			state = Temp&PressOil;
-		else if(state == Temp&PressOil)
+			state = TempPressOil;
+		else if(state == TempPressOil)
 			state = TempExt;
 	}
 	
@@ -229,13 +229,13 @@ void ObcTemp::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 			coolantWarningTempSet = coolantWarningTemp;
 			state = TempCoolantWarningSet;
 		}
-		else if((state == Temp&PressOil) && !StatusSet)
+		else if((state == TempPressOil) && !StatusSet)
 		{
 			OilWarningTemp = OilWarningTempSet;
 			state = TempOilWarningSet;
 			StatusSet = false;
 		}
-		else if((state == Temp&PressOil) && StatusSet)
+		else if((state == TempPressOil) && StatusSet)
 		{
 			OilWarningPress = OilWarningPressSet;
 			state = PressOilWarningSet;
