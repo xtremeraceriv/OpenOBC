@@ -30,7 +30,7 @@
 
 namespace ObcMemoState
 {
-	enum state {Voltage, OilPressure, Accelerometer};
+	enum state {Voltage, /*OilPressure,*/ Accelerometer};
 }
 
 class ObcMemo : public ObcUITask
