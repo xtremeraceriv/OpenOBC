@@ -68,7 +68,7 @@ void ObcTemp::sleep()
 		obc.config->setValueByName("ObcTempState", "TempCoolant");
 	else if(state == TempExt)
 		obc.config->setValueByName("ObcTempState", "TempExt");
-	else if(state == Temp&PressOil)										//Nuevo estado
+	else if(state == TempPressOil)										//Nuevo estado
 		obc.config->setValueByName("ObcTempState", "TempPressOil");
 }
 
