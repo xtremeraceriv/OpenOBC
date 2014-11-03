@@ -97,7 +97,7 @@ void ObcTemp::runTask()
 	}
 	else if(state == TempPressOil)
 	{
-		setDisplay("Aceite % 2.0f psi % 2.0fC", obc.analogIn2->read(), obc.oilTemp->getTemp());	//Agrego estado nuevo
+		setDisplay("Aceite % 2.0f psi % 2.0fC",  obc.oilPressure->getPsi(), obc.analogIn2->read());	//Agrego estado nuevo
 	}
 	else if(state == TempCoolantWarningSet)
 	{
