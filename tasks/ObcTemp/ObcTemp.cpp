@@ -156,7 +156,7 @@ void ObcTemp::runTask()
 		obc.chime1->on();
 		obc.ui->callback.addCallback(obc.chime1, &IO::off, 100);
 	}
-	else if(obc.analogIn2->read()) >= OilWarningTemp)
+	else if((obc.analogIn2->read()) >= OilWarningTemp)
 	{
 		if(OTWarningTimer.read_ms() >= 5000)
 		{
