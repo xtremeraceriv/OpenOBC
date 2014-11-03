@@ -29,12 +29,13 @@
 #include <cstdlib>
 
 using namespace ObcTempState;
+static bool StatusSet = true; //Inicializo selector
 
 ObcTemp::ObcTemp(OpenOBC& obc) : ObcUITask(obc)
 {
 	setDisplay("ObcTemp");
 
-	static bool StatusSet = true; //Inicializo selector
+	
 	
 	std::string configState = obc.config->getValueByNameWithDefault("ObcTempState", "TempExt");
 	if(configState == "TempCoolant")
