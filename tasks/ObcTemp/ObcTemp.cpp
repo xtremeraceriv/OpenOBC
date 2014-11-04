@@ -99,14 +99,13 @@ void ObcTemp::runTask()
 	{
 		float Rfija = 1000;									// [ohm]     Resistencia fija del divisor
 		float R25 = 3600;									// [ohm]     Valor de NTC a 25ºC
-		float Beta = 1770.0;								// [K]       Parámetro Beta de NTC
+		float Beta = 1770;									// [K]       Parámetro Beta de NTC
 		float T0 = 293.15;									// [K]       Temperatura de referencia en Kelvin
 		float Vdiv = obc.analogIn2->read();					// [V]       Variable para almacenar Vout
 		float Rntc =(Vdiv*Rfija)/(REFERENCE_VOLTAGE-Vdiv);	//Ahora la resistencia de la NTC
-		//float TempK = Beta/(log(Rntc/R25)+(Beta/T0));		//Y por último la temperatura en Kelvin
-		//TempC = TempK-273.15;								//Y ahora la pasamos a celsius
-		TempC = 1.0 / ((1.0 / T0) + (1.0/Beta) * log(Rntc / R25)) - 273.15f;
-
+		float TempK = 300;//Beta/(log(Rntc/R25)+(Beta/T0));		//Y por último la temperatura en Kelvin
+		TempC = TempK-273.15;								//Y ahora la pasamos a celsius
+		
 		setDisplay("Oil % 2.0fpsi % 2.0fC",  obc.oilPressure->getPsi(), TempC);	//Agrego estado nuevo
 	}
 	else if(state == TempCoolantWarningSet)
