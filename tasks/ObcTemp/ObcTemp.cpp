@@ -96,16 +96,15 @@ void ObcTemp::runTask()
 	}
 	else if(state == TempPressOil)
 	{
-		float Vref = 3.0;								// [V]       Tensión alimentación del divisor
-		float Rfija = 1000;								// [ohm]     Resistencia fija del divisor
-		float R25 = 3600;								// [ohm]     Valor de NTC a 25ºC
-		float Beta = 1770.0;							// [K]       Parámetro Beta de NTC
-		float T0 = 293.15;								// [K]       Temperatura de referencia en Kelvin
-		float Vdiv = obc.analogIn2->read();				// [V]       Variable para almacenar Vout
-		float Rntc =(Vdiv*Rfija)/(Vref-Vdiv);			//Ahora la resistencia de la NTC
-		float TempK = Beta/(log(Rntc/R25)+(Beta/T0));	//Y por último la temperatura en Kelvin
-		float TempC = TempK-273.15;						//Y ahora la pasamos a celsius
-
+		float Rfija = 10000;								// [ohm]     Resistencia fija del divisor
+		float R25 = 3600;									// [ohm]     Valor de NTC a 25ºC
+		float Beta = 1770.0;								// [K]       Parámetro Beta de NTC
+		float T0 = 293.15;									// [K]       Temperatura de referencia en Kelvin
+		float Vdiv = obc.analogIn2->read();					// [V]       Variable para almacenar Vout
+		float Rntc =(Vdiv*Rfija)/(REFERENCE_VOLTAGE-Vdiv);	//Ahora la resistencia de la NTC
+		float TempK = Beta/(log(Rntc/R25)+(Beta/T0));		//Y por último la temperatura en Kelvin
+		float TempC = TempK-273.15;							//Y ahora la pasamos a celsius
+	
 		setDisplay("Oil % 2.0fpsi % 2.0fC",  obc.oilPressure->getPsi(), TempC);	//Agrego estado nuevo
 	}
 	else if(state == TempCoolantWarningSet)
@@ -154,7 +153,7 @@ void ObcTemp::runTask()
 	//Warning Temperatura de Aceite
 	static Timer OTWarningTimer;
 	static bool OThasWarned;
-	if(obc.analogIn2->read() >= OilWarningTemp && !OThasWarned)
+	if(TempC >= OilWarningTemp && !OThasWarned)
 	{
 		OTWarningTimer.start();
 		OThasWarned = true;
@@ -165,7 +164,7 @@ void ObcTemp::runTask()
 		obc.chime1->on();
 		obc.ui->callback.addCallback(obc.chime1, &IO::off, 100);
 	}
-	else if((obc.analogIn2->read()) >= OilWarningTemp)
+	else if(TempC >= OilWarningTemp)
 	{
 		if(OTWarningTimer.read_ms() >= 5000)
 		{
@@ -184,7 +183,7 @@ void ObcTemp::runTask()
 	//Warning Presion de aceite
 	static Timer OPWarningTimer;
 	static bool OPhasWarned;
-	if((obc.oilPressure->getPsi()) <= OilWarningPress && !OPhasWarned)
+	if((obc.oilPressure->getPsi()) != -1 && (obc.oilPressure->getPsi()) <= OilWarningPress && !OPhasWarned)
 	{
 		OPWarningTimer.start();
 		OPhasWarned = true;

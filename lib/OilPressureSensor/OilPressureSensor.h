@@ -106,11 +106,11 @@ private:
 //starts at 0mV; increments by 10mV
 const uint16_t pressureLookupTable[] = {
 	0, //0 psi == 0mV
-	30, //0 psi == 10mV
+	30, //3 psi == 10mV
 	60,
 	90,
-	120, //1.1 psi == 40mV
-	150, //2.5 psi == 50mV
+	120, //1.2 psi == 40mV
+	150, //1.5 psi == 50mV
 	180,
 	210,
 	240,
