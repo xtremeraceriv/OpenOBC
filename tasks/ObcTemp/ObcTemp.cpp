@@ -97,7 +97,7 @@ void ObcTemp::runTask()
 	}
 	else if(state == TempPressOil)
 	{
-		float Rfija = 10000;								// [ohm]     Resistencia fija del divisor
+		float Rfija = 1000;									// [ohm]     Resistencia fija del divisor
 		float R25 = 3600;									// [ohm]     Valor de NTC a 25ºC
 		float Beta = 1770.0;								// [K]       Parámetro Beta de NTC
 		float T0 = 293.15;									// [K]       Temperatura de referencia en Kelvin
