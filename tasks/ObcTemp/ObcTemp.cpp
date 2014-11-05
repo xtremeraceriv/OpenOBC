@@ -103,7 +103,7 @@ void ObcTemp::runTask()
 		float T0 = 293.15;									// [K]       Temperatura de referencia en Kelvin
 		float Vdiv = obc.analogIn2->read();					// [V]       Variable para almacenar Vout
 		float Rntc =(Vdiv*Rfija)/(REFERENCE_VOLTAGE-Vdiv);	//Ahora la resistencia de la NTC
-		float TempK = 300;//Beta/(log(Rntc/R25)+(Beta/T0));		//Y por último la temperatura en Kelvin
+		float TempK = Beta/(log(Rntc/R25)+(Beta/T0));		//Y por último la temperatura en Kelvin
 		TempC = TempK-273.15;								//Y ahora la pasamos a celsius
 		
 		setDisplay("Oil % 2.0fpsi % 2.0fC",  obc.oilPressure->getPsi(), TempC);	//Agrego estado nuevo
