@@ -15,3 +15,5 @@
 ._.DS_Store
 .*.kate-swp
 *.xcodeproj
+*.ncb
+*.suo
