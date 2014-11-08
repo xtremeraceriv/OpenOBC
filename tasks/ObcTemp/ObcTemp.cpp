@@ -252,7 +252,9 @@ void ObcTemp::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 		}
 		else
 		{
-			coolantWarningTempSet = coolantWarningTemp;
+			coolantWarningTemp = coolantWarningTempSet;
+			OilWarningTemp = OilWarningTempSet;
+			OilWarningPress = OilWarningPressSet;
 			state = TempExt;
 		}
 	}
