@@ -59,12 +59,12 @@ float E36Kombi::getCoolantTemperature()
 		uint8_t* statusData = reply->getData();
 		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
 		if(index >= reply->getDataLength())
-			return -273.15f;
+			return 66.6f;//-273.15f;
 		
 		uint8_t rawTemp = statusData[index];
 		delete reply;
 		float temperature = coolant_temp_table[rawTemp];
 		return temperature;
 	}
-	return -273.15f;
+	return 77.7f;//-273.15f;
 }

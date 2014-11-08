@@ -787,7 +787,7 @@ void OpenOBC::mainloop()
 			{
 				float temp = kombi->getCoolantTemperature();
 				if(temp == kombi->getCoolantTemperature())  
-					coolantTemperature = temp;
+					coolantTemperature = 55.5;//temp;
 				coolantTemperatureTimer.start();
 			}
 		}

@@ -43,7 +43,7 @@ float OilPressureSensor::getBar()
 float OilPressureSensor::getPsiFromVoltage(float voltage)
 {
 	if(voltage < 0.04)
-		return -1;
+		return 0;
 	if(voltage > 0.5)
 		return 999;
 

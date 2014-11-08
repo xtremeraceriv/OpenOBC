@@ -106,7 +106,7 @@ void ObcTemp::runTask()
 		float TempK = Beta/(log(Rntc/R25)+(Beta/T0));		//Y por último la temperatura en Kelvin
 		TempC = TempK-273.15;								//Y ahora la pasamos a celsius
 		
-		setDisplay("Oil % 2.0fpsi % 2.0fC",  obc.oilPressure->getPsi(), TempC);	//Agrego estado nuevo
+		setDisplay("Oil % 3.0fpsi % 3.0fC",  obc.oilPressure->getPsi(), TempC);	//Agrego estado nuevo
 	}
 	else if(state == TempCoolantWarningSet)
 	{
@@ -184,7 +184,7 @@ void ObcTemp::runTask()
 	//Warning Presion de aceite
 	static Timer OPWarningTimer;
 	static bool OPhasWarned;
-	if((obc.oilPressure->getPsi()) != -1 && (obc.oilPressure->getPsi()) <= OilWarningPress && !OPhasWarned)
+	if((obc.fuelCons->getRpm()) >= 400 && (obc.oilPressure->getPsi()) <= OilWarningPress && !OPhasWarned)
 	{
 		OPWarningTimer.start();
 		OPhasWarned = true;
@@ -240,13 +240,13 @@ void ObcTemp::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 		}
 		else if((state == TempPressOil) && !StatusSet)
 		{
-			OilWarningTemp = OilWarningTempSet;
+			OilWarningTempSet = OilWarningTemp;
 			state = TempOilWarningSet;
 			StatusSet = true;
 		}
 		else if((state == TempPressOil) && StatusSet)
 		{
-			OilWarningPress = OilWarningPressSet;
+			OilWarningPressSet = OilWarningPress;
 			state = PressOilWarningSet;
 			StatusSet = false;
 		}
