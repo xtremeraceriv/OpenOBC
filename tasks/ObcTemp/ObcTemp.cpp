@@ -195,7 +195,7 @@ void ObcTemp::runTask()
 		obc.chime1->on();
 		obc.ui->callback.addCallback(obc.chime1, &IO::off, 100);
 	}
-	else if((obc.oilPressure->getPsi()) <= OilWarningPress)
+	else if((obc.fuelCons->getRpm()) >= 400 && (obc.oilPressure->getPsi()) <= OilWarningPress)
 	{
 		if(OPWarningTimer.read_ms() >= 5000)
 		{
@@ -236,16 +236,22 @@ void ObcTemp::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 		if(state == TempCoolant)
 		{
 			coolantWarningTempSet = coolantWarningTemp;
+			OilWarningTempSet = OilWarningTemp;
+			OilWarningPressSet = OilWarningPress;
 			state = TempCoolantWarningSet;
 		}
 		else if((state == TempPressOil) && !StatusSet)
 		{
+			coolantWarningTempSet = coolantWarningTemp;
 			OilWarningTempSet = OilWarningTemp;
+			OilWarningPressSet = OilWarningPress;
 			state = TempOilWarningSet;
 			StatusSet = true;
 		}
 		else if((state == TempPressOil) && StatusSet)
 		{
+			coolantWarningTempSet = coolantWarningTemp;
+			OilWarningTempSet = OilWarningTemp;
 			OilWarningPressSet = OilWarningPress;
 			state = PressOilWarningSet;
 			StatusSet = false;
