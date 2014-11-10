@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012 <benemorius@gmail.com>
+    Copyright (c) 2014 <benemorius@gmail.com>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -23,48 +23,32 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#include "OilPressureSensor.h"
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
-
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+OilPressureSensor::OilPressureSensor(AnalogIn& analogIn, float calibrationScale) : analogIn(analogIn), calibrationScale(calibrationScale)
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
+
 }
 
-bool E36Kombi::query()
+float OilPressureSensor::getPsi()
 {
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
+	return getPsiFromVoltage(analogIn.read()) * calibrationScale;
 }
 
-float E36Kombi::getCoolantTemperature()
+float OilPressureSensor::getBar()
 {
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
-	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
-	}
-	return -273.15f;
+	return getPsi() / 14.504;
+}
+
+float OilPressureSensor::getPsiFromVoltage(float voltage)
+{
+	if(voltage < 0)
+		return -1;
+	if(voltage > 0.5)
+		return 999;
+
+	//float currentPsi = (float)pressureLookupTable[(unsigned int)(voltage * 100)] / 10;
+	float currentPsi = ((voltage*1000)-40)/3.155227908; // Para el sensor MD
+
+	return currentPsi;
 }

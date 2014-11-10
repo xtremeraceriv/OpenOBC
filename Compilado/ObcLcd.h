@@ -23,48 +23,64 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#ifndef OBCLCD_H
+#define OBCLCD_H
+#include "SPI.h"
+#include "IO.h"
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
+#define LCD_MAX_CHARACTERS (20)
+#define CLOCK_MAX_CHARACTERS (4)
 
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
-{
-	address = 0x0d;
-	packetType = DS2_16BIT;
+namespace ObcLcdSymbolMasks {
+	const uint8_t symbol[] = {0x4, 0x4, 0x4, 0x8, 0x8, 0xc, 0x4, 0x4, 0x4};
 }
 
-bool E36Kombi::query()
-{
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
+namespace ObcLcdSymbolOffsets {
+	const uint8_t symbol[] = {0x0, 0x3, 0x4, 0x2, 0x4, 0x6, 0x1, 0x7, 0x5};
 }
 
-float E36Kombi::getCoolantTemperature()
-{
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
-	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
-	}
-	return -273.15f;
+namespace ObcLcdSymbols {
+	enum symbol {
+		LeftArrow = 0x0,
+		RightArrow = 0x1,
+		Plus = 0x2,
+		TopDot = 0x3,
+		BottomDot = 0x4,
+		Periods = 0x5,
+		Memo = 0x6,
+		AM = 0x7,
+		PM = 0x8,
+	};
 }
+
+class ObcLcd
+{
+public:
+	ObcLcd(SPI& spi, IO& cs, IO& refresh, IO& unk0, IO& unk1, uint32_t spiClockrateHz = 1000000);
+
+	void printf(char* format, ...);
+	void printfClock(char* format, ...);
+	void clear();
+	void clearClock();
+
+	void setSymbol(ObcLcdSymbols::symbol symbol, bool isOn);
+
+private:
+	void update();
+	void testSymbols();
+	void sendSymbols();
+
+	SPI& spi;
+	IO& cs;
+	IO& refresh;
+	IO& unk0;
+	IO& unk1;
+	uint32_t spiClockrate;
+	uint8_t symbolBytes[8];
+	static const uint8_t constBytes[8];
+
+	char lcdBuffer[LCD_MAX_CHARACTERS+1];
+	char clockBuffer[CLOCK_MAX_CHARACTERS+1];
+};
+
+#endif // OBCLCD_H

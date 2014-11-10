@@ -23,48 +23,47 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#include "CheckControlModule.h"
+#include "delay.h"
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
-
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+CheckControlModule::CheckControlModule(Input& data, IO& clock, IO& latch, uint8_t disableMask, uint8_t invertMask) : data(data), clock(clock), latch(latch), invertMask(invertMask), disableMask(disableMask)
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
+	clock = false;
+	latch = false;
+	updateStatus();
 }
 
-bool E36Kombi::query()
+void CheckControlModule::task()
 {
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
+	updateStatus();
 }
 
-float E36Kombi::getCoolantTemperature()
+void CheckControlModule::updateStatus()
 {
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
+	uint8_t status = 0;
+	clock = true;
+	latch = true;
+	for(uint8_t bit = 8; bit; bit--)
 	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
+		delay(1); //TODO shorten these delays
+		clock = false;
+		delay(1);
+		clock = true;
+		delay(1);
+		if(data)
+			status += (1<<(bit-1));
 	}
-	return -273.15f;
+	latch = false;
+	clock = false;
+	rawByte = status;
+}
+
+uint8_t CheckControlModule::getRawByte()
+{
+	return rawByte;
+}
+
+uint8_t CheckControlModule::getCCMByte()
+{
+	return (getRawByte() ^ invertMask) & ~disableMask;
 }

@@ -23,48 +23,58 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#ifndef SDCARD_H
+#define SDCARD_H
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
+#include "SPI.h"
+#include "IO.h"
+#include "ff.h"
+#include "FatFS.h"
 
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
+#include <string>
 
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+class SDFS : public FatFSDisk
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
-}
+public:
+	SDFS(SPI& spi, IO& cs, uint32_t spiClockrateHz = 10000000);
+	~SDFS();
 
-bool E36Kombi::query()
-{
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
-}
+	int32_t mount(const char* mountpath);
+	int32_t unmount();
+	std::string getMountpath() {return this->mountpath;}
 
-float E36Kombi::getCoolantTemperature()
-{
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
-	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
-	}
-	return -273.15f;
-}
+	virtual int32_t disk_initialise();
+	virtual int32_t disk_status();
+	virtual int32_t disk_read(uint8_t* buffer, uint32_t startSector, uint32_t count);
+	virtual int32_t disk_write(const uint8_t* data, uint32_t startSector, uint32_t count);
+	virtual int32_t disk_ioctl(uint8_t ctrl, void* buffer);
+	
+	int disk_sync();
+	int disk_sectors();
+	
+
+private:
+	int _cmd(int cmd, int arg);
+	int _cmdx(int cmd, int arg);
+	int _cmd8();
+	int _cmd58();
+	int initialise_card();
+	int initialise_card_v1();
+	int initialise_card_v2();
+
+	int _read(char *buffer, int length);
+	int _write(const char *buffer, int length);
+	int _sd_sectors();
+	int _sectors;
+
+	
+	SPI& spi;
+	IO& cs;
+	std::string mountpath;
+	int cdv;
+	bool isMounted;
+	uint32_t spiClockrate;
+};
+
+
+#endif // SDCARD_H

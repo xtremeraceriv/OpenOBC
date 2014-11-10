@@ -23,48 +23,35 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#ifndef RTC_H
+#define RTC_H
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
+#include <lpc17xx_rtc.h>
 
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+class RTC
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
-}
+public:
+	RTC();
 
-bool E36Kombi::query()
-{
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
-}
+	void setTime(RTC_TIME_Type* time);
+	void getTime(RTC_TIME_Type* time);
 
-float E36Kombi::getCoolantTemperature()
-{
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
-	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
-	}
-	return -273.15f;
-}
+	uint8_t getSecond();
+	uint8_t getMinute();
+	uint8_t getHour();
+	uint8_t getDay();
+	uint8_t getMonth();
+	uint16_t getYear();
+	
+	void setSecond(uint8_t second);
+	void setMinute(uint8_t minute);
+	void setHour(uint8_t hour);
+	void setDay(uint8_t day);
+	void setMonth(uint8_t month);
+	void setYear(uint16_t year);
+
+private:
+	RTC_TIME_Type time;
+};
+
+#endif // RTC_H

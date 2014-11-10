@@ -23,48 +23,57 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#ifndef CHECKCONTROLMODULE_H
+#define CHECKCONTROLMODULE_H
+#include <stdint.h>
+#include "Input.h"
+#include "IO.h"
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
+/* thanks veskobx
+bit 7 L 1 Brake Light Fail
+bit 6 L 1 Brake Light Fail
+bit 5 H Tail Light Failure
+bit 4 H Lic Plate Light Fail
+bit 3 H Low Beam
+bit 2 L Coolant level
+bit 1 L Washer Fluid
+bit 0 H Pulldown
+*/
 
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+namespace ObcCCMBits
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
+	enum bits {
+		Pulldown = 0x1,
+		WasherFluid = 0x2,
+		CoolantLevel = 0x4,
+		LowBeam = 0x8,
+		LicensePlateLight = 0x10,
+		TailLight = 0x20,
+		BrakeLight1 = 0x40,
+		BrakeLight2 = 0x80
+	};
 }
 
-bool E36Kombi::query()
+class CheckControlModule
 {
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
-}
 
-float E36Kombi::getCoolantTemperature()
-{
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
-	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
-	}
-	return -273.15f;
-}
+public:
+    CheckControlModule(Input& data, IO& clock, IO& latch, uint8_t disableMask = 0x0, uint8_t invertMask = (ObcCCMBits::WasherFluid | ObcCCMBits::CoolantLevel | ObcCCMBits::BrakeLight1 | ObcCCMBits::BrakeLight2));
+
+	 void task();
+
+	 uint8_t getCCMByte();
+	 uint8_t getRawByte();
+
+private:
+	void updateStatus();
+	
+	Input& data;
+	IO& clock;
+	IO& latch;
+	uint8_t rawByte;
+	uint8_t invertMask;
+	uint8_t disableMask;
+};
+
+#endif // CHECKCONTROLMODULE_H

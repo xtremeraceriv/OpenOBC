@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012 <benemorius@gmail.com>
+    Copyright (c) 2013 <benemorius@gmail.com>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -23,48 +23,23 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
+#ifndef WATCHDOG_H
+#define WATCHDOG_H
 
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
+#include <lpc17xx_wdt.h>
 
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+class Watchdog
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
-}
 
-bool E36Kombi::query()
-{
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
-}
+public:
+    Watchdog();
+    virtual ~Watchdog();
+	
+	void start(float seconds);
+	void stop();
+	void feed();
+	bool wasReset();
+};
 
-float E36Kombi::getCoolantTemperature()
-{
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
-	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
-	}
-	return -273.15f;
-}
+#endif // WATCHDOG_H

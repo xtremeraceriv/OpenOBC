@@ -23,48 +23,24 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#ifndef ZKE4_H
+#define ZKE4_H
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
+#include "DS2.h"
 
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+class E36ZKE4
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
-}
+public:
+	E36ZKE4(DS2& diagnosticInterface);
 
-bool E36Kombi::query()
-{
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
-}
+	E36ZKE4& lock();
+	E36ZKE4& unlock();
+	bool query();
 
-float E36Kombi::getCoolantTemperature()
-{
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
-	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
-	}
-	return -273.15f;
-}
+private:
+	DS2& diag;
+	int address;
+	DS2PacketType packetType;
+};
+
+#endif // ZKE4_H

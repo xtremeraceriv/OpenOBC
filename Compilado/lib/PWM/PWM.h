@@ -23,48 +23,36 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#ifndef PWM_H
+#define PWM_H
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
+#include <lpc_types.h>
+#include <lpc17xx_pwm.h>
 
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
 
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+class PWM
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
-}
+public:
+	PWM(uint8_t port, uint8_t pin, float dutyCycle = .5, float frequency = 80000);
+	void setDutyCycle(float dutyCycle);
+	float getDutyCycle();
+	void setFrequency(float frequency); //on the LPC17xx this will set the frequency of all 6 PWM channels
+	float getFrequency();
 
-bool E36Kombi::query()
-{
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
-}
+	void on();
+	void off();
 
-float E36Kombi::getCoolantTemperature()
-{
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
-	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
-	}
-	return -273.15f;
-}
+	PWM& operator=(bool state);
+	PWM& operator=(float dutyCycle);
+
+private:
+	uint8_t port;
+	uint8_t pin;
+	uint8_t channel;
+	LPC_PWM_TypeDef* peripheral;
+	float dutyCycle;
+	float frequency;
+	static bool isInitialized;
+};
+
+#endif // PWM_H

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012 <benemorius@gmail.com>
+    Copyright (c) 2013 <benemorius@gmail.com>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -23,48 +23,46 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#include "ObcRange.h"
+#include <ObcUI.h>
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
-
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+ObcRange::ObcRange(OpenOBC& obc) : ObcUITask(obc)
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
+	setDisplay("ObcRange");
 }
 
-bool E36Kombi::query()
+ObcRange::~ObcRange()
 {
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
+
 }
 
-float E36Kombi::getCoolantTemperature()
+void ObcRange::wake()
 {
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
+	runTask();
+}
+
+void ObcRange::runTask()
+{
+	float fuelLevelLitres = obc.fuelLevel->getLitres();
+	float fuelLevelGallons = obc.fuelLevel->getGallons();
+	float rangeKm = fuelLevelLitres / obc.averageLitresPer100km * 100;
+			
+	if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Both)
+		setDisplay("%.0f km %.0f miles", rangeKm, rangeKm * 0.621371f);
+	if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Metric)
+		setDisplay("%.0f km  %.1f L", rangeKm, fuelLevelLitres);
+	if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Imperial)
+		setDisplay("%.0f miles  %.2f gal", rangeKm * 0.621371f, fuelLevelGallons);
+}
+
+void ObcRange::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
+{
+	if(focus == ObcUITaskFocus::background)
 	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
+		if(buttonMask == BUTTON_RANGE_MASK)
+			obc.ui->setActiveTask(this);
+		return;
 	}
-	return -273.15f;
+	
+	
 }

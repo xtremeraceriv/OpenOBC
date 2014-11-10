@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012 <benemorius@gmail.com>
+    Copyright (c) 2013 <benemorius@gmail.com>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -23,48 +23,43 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#include "ObcOdometer.h"
+#include <ObcUI.h>
+#include <cstdlib>
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
-
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+ObcOdometer::ObcOdometer(OpenOBC& obc) : ObcUITask(obc), timer(obc.interruptManager)
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
+	setDisplay("ObcOdometer");
+	currentKm = strtof(obc.config->getValueByNameWithDefault("ObcOdometerCurrentKm", "%f", 0).c_str(), NULL);
 }
 
-bool E36Kombi::query()
+ObcOdometer::~ObcOdometer()
 {
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
+
 }
 
-float E36Kombi::getCoolantTemperature()
+void ObcOdometer::wake()
 {
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
+	runTask();
+}
+
+void ObcOdometer::sleep()
+{
+	obc.config->setValueByName("ObcOdometerCurrentKm", "%f", currentKm);
+}
+
+
+void ObcOdometer::runTask()
+{
+	if(timer.read() >= 1)
 	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
+		timer.start();
+		currentKm += obc.speed->getKmh() / 60 / 60;
 	}
-	return -273.15f;
+	obc.currentKm = currentKm;
+}
+
+void ObcOdometer::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
+{
+
 }

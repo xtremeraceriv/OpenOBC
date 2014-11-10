@@ -23,48 +23,46 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#include "SpeedInput.h"
+#include <lpc17xx_gpio.h>
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
+#define MAX_PERIOD (2000000) //2000000us == ~0.24mph
 
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+SpeedInput::SpeedInput(Input& input, InterruptManager& interruptManager) : input(input), interruptManager(interruptManager)
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
+	currentSpeed = 0.0f;
+	periodTimer = new Timer(interruptManager);
+	interruptManager.attach(IRQ_EINT3, this, &SpeedInput::interruptHandler);
+	GPIO_IntEnable(input.getPort(), (1<<input.getPin()), 1);
+	NVIC_EnableIRQ(EINT3_IRQn);
+
 }
 
-bool E36Kombi::query()
+SpeedInput::~SpeedInput()
 {
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
+	GPIO_IntDisable(input.getPort(), (1<<input.getPin()), 1);
+	interruptManager.detach(IRQ_EINT3, this, &SpeedInput::interruptHandler);
+	delete periodTimer;
 }
 
-float E36Kombi::getCoolantTemperature()
+float SpeedInput::getKmh()
 {
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
+	uint32_t currentPeriod = periodTimer->read_us();
+	if(currentPeriod > MAX_PERIOD)
+		currentSpeed = 0.0f;
+	return currentSpeed;
+}
+
+void SpeedInput::interruptHandler()
+{
+	if(GPIO_GetIntStatus(input.getPort(), input.getPin(), 1))
 	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
+		uint32_t currentPeriod = periodTimer->read_us();
+		periodTimer->start();
+		GPIO_ClearInt(input.getPort(), (1<<input.getPin()));
+		if(currentPeriod > MAX_PERIOD)
+			currentSpeed = 0.0f;
+		else
+			currentSpeed = (float)1000000 / currentPeriod / 4712 * 60 * 60;
 	}
-	return -273.15f;
 }

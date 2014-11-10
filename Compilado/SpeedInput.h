@@ -23,48 +23,29 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
+#ifndef SPEEDINPUT_H
+#define SPEEDINPUT_H
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
+#include "Input.h"
+#include "InterruptManager.h"
+#include "Timer.h"
 
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+class SpeedInput
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
-}
+public:
+	SpeedInput(Input& input, InterruptManager& interruptManager);
+	~SpeedInput();
+	
+	float getKmh();
+	float getMph() {return getKmh() * 0.621371f;}
+	
+private:
+	void interruptHandler();
+	
+	Input& input;
+	InterruptManager& interruptManager;
+	Timer* periodTimer;
+	float currentSpeed;
+};
 
-bool E36Kombi::query()
-{
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
-}
-
-float E36Kombi::getCoolantTemperature()
-{
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
-	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
-	}
-	return -273.15f;
-}
+#endif // SPEEDINPUT_H

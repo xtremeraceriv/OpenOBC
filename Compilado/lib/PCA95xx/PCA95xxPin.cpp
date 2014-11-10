@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2012 <benemorius@gmail.com>
+    Copyright (c) 2013 <benemorius@gmail.com>
 
     Permission is hereby granted, free of charge, to any person
     obtaining a copy of this software and associated documentation
@@ -23,48 +23,50 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
-#include "E36Kombi.h"
 
-#define CMD_QUERY {0x00}
-#define CMD_READ_STATUS {0x08}
+#include "PCA95xxPin.h"
 
-#define STATUS_BYTE_COOLANT_TEMPERATURE (5)
-
-E36Kombi::E36Kombi(DS2& diagnosticInterface) : diag(diagnosticInterface)
+PCA95xxPin::PCA95xxPin(PCA95xx& pca, uint8_t port, uint8_t pin, bool isOutput, bool isOn, bool onIsHigh) : IO(0xff, 0, isOutput, onIsHigh), pca(pca), port(port), pin(pin), isOutput(isOutput)
 {
-	address = 0x0d;
-	packetType = DS2_16BIT;
+	bitmask = (1 << pin) << (port * 8);
+	
+	setState(isOn);
+	if(isOutput)
+		setOutput();
 }
 
-bool E36Kombi::query()
+PCA95xxPin::~PCA95xxPin()
 {
-	const uint8_t cmd[] = CMD_QUERY;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query);
-	if(reply != NULL)
-	{
-		delete reply;
-		return true;
-	}
-	return false;
+	setInput();
+	setState(false);
 }
 
-float E36Kombi::getCoolantTemperature()
+void PCA95xxPin::setState(bool state)
 {
-	const uint8_t cmd[] = CMD_READ_STATUS;
-	DS2Packet query(address, cmd, sizeof(cmd), packetType);
-	DS2Packet* reply = diag.query(query, DS2_L);
-	if(reply != NULL)
-	{
-		uint8_t* statusData = reply->getData();
-		uint8_t index = STATUS_BYTE_COOLANT_TEMPERATURE;
-		if(index >= reply->getDataLength())
-			return -273.15f;
-		
-		uint8_t rawTemp = statusData[index];
-		delete reply;
-		float temperature = coolant_temp_table[rawTemp];
-		return temperature;
-	}
-	return -273.15f;
+	this->state = state;
+	uint16_t bits = pca.getCurrentOutputBits();
+	bits &= ~bitmask;
+	if(state ^ !onIsHigh)
+		bits |= bitmask;
+	pca.writeBits(bits);
+}
+
+bool PCA95xxPin::getState() const
+{
+	if(isOutput)
+		return state;
+	uint16_t bits = pca.readBits();
+	return (bits >> (port * 8)) & (1<<pin);
+}
+
+void PCA95xxPin::setInput()
+{
+	isOutput = false;
+	pca.setInput(port, pin);
+}
+
+void PCA95xxPin::setOutput()
+{
+	isOutput = true;
+	pca.setOutput(port, pin);
 }
