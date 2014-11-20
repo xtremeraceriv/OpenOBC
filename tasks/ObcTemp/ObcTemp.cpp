@@ -181,7 +181,7 @@ void ObcTemp::runTask()
 		OThasWarned = false;
 	}
 
-	//Warning Presion de aceite
+	/*//Warning Presion de aceite
 	static Timer OPWarningTimer;
 	static bool OPhasWarned;
 	if((obc.fuelCons->getRpm()) >= 400 && (obc.oilPressure->getPsi()) <= OilWarningPress && !OPhasWarned)
@@ -210,7 +210,7 @@ void ObcTemp::runTask()
 	{
 		OPhasWarned = false;
 	}
-}
+}*/ 
 
 void ObcTemp::buttonHandler(ObcUITaskFocus::type focus, uint32_t buttonMask)
 {
