@@ -23,6 +23,8 @@
     OTHER DEALINGS IN THE SOFTWARE.
 */
 
+//MODULO AIRBAG
+
 #include "E36SRS.h"
 
 #define CMD_QUERY {0x00}
