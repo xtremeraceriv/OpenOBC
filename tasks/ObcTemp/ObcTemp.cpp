@@ -106,7 +106,7 @@ void ObcTemp::runTask()
 		float TempK = Beta/(log(Rntc/R25)+(Beta/T0));		//Y por último la temperatura en Kelvin
 		TempC = TempK-273.15;								//Y ahora la pasamos a celsius
 		
-		setDisplay("Oil % 3.1fpsi % 3.0fC",  obc.oilPressure->getPsi(), TempC);	//Agrego estado nuevo
+		setDisplay("Oil % 3.0fpsi % 3.0fC",  obc.oilPressure->getPsi(), TempC);	//Agrego estado nuevo
 	}
 	else if(state == TempCoolantWarningSet)
 	{

@@ -74,11 +74,18 @@ void ObcConsum::runTask()
 	static Timer averageLitresPer100kmTimer(obc.interruptManager);
 	
 	float kilometresPerHour = obc.speed->getKmh();
-	if(averageLitresPer100kmTimer.read_ms() >= 1000 && kilometresPerHour > 1)
+	if(averageLitresPer100kmTimer.read_ms() >= 1000)
 	{
 		averageLitresPer100kmTimer.start();
 		float litresPerHour = 0.2449 * 6 * 60 * obc.fuelCons->getDutyCycle(); //244.9 cc/min S50B32  1000cc = 1lts -> 0.2449lts/min
-		float litresPer100km = litresPerHour / kilometresPerHour * 100;
+		if(kilometresPerHour > 1)
+		{
+			float litresPer100km = litresPerHour / kilometresPerHour * 100;
+		}
+		else
+		{
+			float litresPer100km = litresPerHour / 0.01 * 100;
+		}
 		if(averageFuelConsumptionSeconds > 0)
 			averageLitresPer100km = (averageLitresPer100km * (averageFuelConsumptionSeconds - 1) + litresPer100km) / averageFuelConsumptionSeconds;
 		else
@@ -93,7 +100,7 @@ void ObcConsum::runTask()
 		case Screen1:
 		{
 			if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Metric)
-				setDisplay("avg %2.1f L/100km", averageLitresPer100km);
+				setDisplay("%2.1fL/100km %2.1fkpl", averageLitresPer100km, (100/averageLitresPer100km));
 			else if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Imperial)
 				setDisplay("avg %2.1f mpg", 235.214f / averageLitresPer100km);
 			else if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Both)
@@ -107,7 +114,7 @@ void ObcConsum::runTask()
 			float kilometresPerHour = obc.speed->getKmh();
 			float milesPerHour = obc.speed->getMph();
 			if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Metric)
-				setDisplay("%2.1f L/100km", litresPerHour / kilometresPerHour * 100);
+				setDisplay("inst %2.1f L/100km", litresPerHour / kilometresPerHour * 100);
 			else if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Imperial)
 				setDisplay("%2.1f mpg", milesPerHour / gallonsPerHour);
 			else if(obc.ui->getMeasurementSystem() == ObcUIMeasurementSystem::Both)
