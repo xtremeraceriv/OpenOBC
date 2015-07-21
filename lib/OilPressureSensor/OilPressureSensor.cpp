@@ -42,12 +42,15 @@ float OilPressureSensor::getBar()
 
 float OilPressureSensor::getPsiFromVoltage(float voltage)
 {
-	if(voltage < 0.04)
+	if(voltage < 0.01)
 		return -1;
+	if(voltage >= 0.01 && voltage < 0.02)
+		return 0;
 	if(voltage > 0.5)
 		return 999;
 
-	float currentPsi = (float)pressureLookupTable[(unsigned int)(voltage * 100)] / 10; //Original
+	float currentPsi = ((voltage)/2,852827656)-10; //for VDO 360-023, 150 psi 10-180 ohm sensor
+	//float currentPsi = (float)pressureLookupTable[(unsigned int)(voltage * 100)] / 10; //Original
 	//float currentPsi = ((voltage)-1.36)/0.02; // Para el sensor MD modificado
 
 	return currentPsi;
