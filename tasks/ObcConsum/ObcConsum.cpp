@@ -74,7 +74,7 @@ void ObcConsum::runTask()
 	static Timer averageLitresPer100kmTimer(obc.interruptManager);
 	
 	float kilometresPerHour = obc.speed->getKmh();
-	if(averageLitresPer100kmTimer.read_ms() >= 1000)
+	if((averageLitresPer100kmTimer.read_ms() >= 1000) && (obc.fuelCons->getRpm() != 0))
 	{
 		averageLitresPer100kmTimer.start();
 		float litresPerHour = 0.2449 * 6 * 60 * obc.fuelCons->getDutyCycle(); //244.9 cc/min S50B32  1000cc = 1lts -> 0.2449lts/min
@@ -85,7 +85,7 @@ void ObcConsum::runTask()
 		}
 		else
 		{
-			litresPer100km = litresPerHour / 0.01 * 100;
+			litresPer100km = litresPerHour / 0.1 * 100;
 		}
 		if(averageFuelConsumptionSeconds > 0)
 			averageLitresPer100km = (averageLitresPer100km * (averageFuelConsumptionSeconds - 1) + litresPer100km) / averageFuelConsumptionSeconds;
@@ -93,6 +93,10 @@ void ObcConsum::runTask()
 			averageLitresPer100km = litresPer100km;
 		averageFuelConsumptionSeconds++;
 		DEBUG("new average fuel consumption is %.1fmpg (%.1fmpg %.1fmph %.1fkm/h) with %i seconds\r\n", 235.214f / averageLitresPer100km, 235.214f / litresPer100km, kilometresPerHour / 1.609f, kilometresPerHour, averageFuelConsumptionSeconds);
+		if(averageLitresPer100km > 99.9)
+		{
+			averageLitresPer100km = 99.9;
+		}
 		obc.averageLitresPer100km = averageLitresPer100km;
 	}
 	
