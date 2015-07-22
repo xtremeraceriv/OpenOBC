@@ -79,13 +79,13 @@ void ObcConsum::runTask()
 		averageLitresPer100kmTimer.start();
 		float litresPerHour = 0.2449 * 6 * 60 * obc.fuelCons->getDutyCycle(); //244.9 cc/min S50B32  1000cc = 1lts -> 0.2449lts/min
 		float litresPer100km;
-		if(kilometresPerHour > 1)
+		if(kilometresPerHour > 1) //Auto en movimiento
 		{
 			litresPer100km = litresPerHour / kilometresPerHour * 100;
 		}
-		else
+		else //Esto es si el auto esta detenido pero con el motor en marcha
 		{
-			litresPer100km = litresPerHour / 0.1 * 100;
+			litresPer100km = litresPerHour / 0.1 * 100; //0.1 es la tendencia de la velocidad a cero, quiza es muy chico -> VER
 		}
 		if(averageFuelConsumptionSeconds > 0)
 			averageLitresPer100km = (averageLitresPer100km * (averageFuelConsumptionSeconds - 1) + litresPer100km) / averageFuelConsumptionSeconds;
