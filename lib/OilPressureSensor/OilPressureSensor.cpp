@@ -46,10 +46,8 @@ float OilPressureSensor::getPsiFromVoltage(float voltage)
 		return -1;
 	if(voltage > 0.5)
 		return 99;
-
+	
+	// Agregar un moving average
 	float currentPsi = (voltage*1000)/2.852827656; //for VDO 360-023, 150 psi 10-180 ohm sensor
-	//float currentPsi = (float)pressureLookupTable[(unsigned int)(voltage * 100)] / 10; //Original
-	//float currentPsi = ((voltage)-1.36)/0.02; // Para el sensor MD modificado
-
 	return currentPsi;
 }

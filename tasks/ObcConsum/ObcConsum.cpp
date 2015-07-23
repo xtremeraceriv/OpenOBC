@@ -85,7 +85,8 @@ void ObcConsum::runTask()
 		}
 		else //Esto es si el auto esta detenido pero con el motor en marcha
 		{
-			litresPer100km = litresPerHour / 0.1 * 100; //0.1 es la tendencia de la velocidad a cero, quiza es muy chico -> VER
+			//litresPer100km = litresPerHour / 10 * 100; //0.1 es muy chico es la tendencia de la velocidad a cero, quiza es muy chico -> VER
+			litresPer100km = 99.9; //Prueba 1
 		}
 		if(averageFuelConsumptionSeconds > 0)
 			averageLitresPer100km = (averageLitresPer100km * (averageFuelConsumptionSeconds - 1) + litresPer100km) / averageFuelConsumptionSeconds;
@@ -93,10 +94,12 @@ void ObcConsum::runTask()
 			averageLitresPer100km = litresPer100km;
 		averageFuelConsumptionSeconds++;
 		DEBUG("new average fuel consumption is %.1fmpg (%.1fmpg %.1fmph %.1fkm/h) with %i seconds\r\n", 235.214f / averageLitresPer100km, 235.214f / litresPer100km, kilometresPerHour / 1.609f, kilometresPerHour, averageFuelConsumptionSeconds);
+		/* // Comento esto por la prueba 1
 		if(averageLitresPer100km > 99.9)
 		{
 			averageLitresPer100km = 99.9;
 		}
+		*/
 		obc.averageLitresPer100km = averageLitresPer100km;
 	}
 	
